@@ -1,7 +1,7 @@
 # MindClaw
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-0.3.0-green.svg)](#)
+[![Version](https://img.shields.io/badge/version-0.3.1-green.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-server-orange.svg)](#mcp-server-native-agent-integration)
 [![ClawHub](https://img.shields.io/badge/clawhub.ai-ready-blueviolet.svg)](https://clawhub.ai)
@@ -65,6 +65,76 @@ pip install mindclaw
 pip install mindclaw[semantic]   # (unused in v0.3 — Ollama is auto-detected, no install needed)
 pip install mindclaw[all]        # Everything: MCP + legacy extras
 pip install mindclaw[dev]        # Development tools (pytest)
+```
+
+## First-Run Setup
+
+After installing, run the setup wizard once to configure MindClaw permanently.
+You will never need to pass `--db`, `--agent`, or `--workspace` flags again.
+
+### For humans — interactive terminal wizard
+
+```bash
+mindclaw setup
+```
+
+The wizard asks four questions (press Enter to accept the default):
+
+```
+════════════════════════════════════════════════════
+  MindClaw Setup Wizard
+════════════════════════════════════════════════════
+  Press Enter to accept the default shown in [brackets].
+
+  OpenClaw workspace path [~/.openclaw/workspace]:
+  Default agent name (leave blank = shared namespace) [none]: mybot
+  Database path [~/.mindclaw/memory.db]:
+
+  ✓ Config saved → ~/.mindclaw/config.json
+
+  Register with Claude Desktop MCP? [Y/n]: y
+  ✓ Claude Desktop config updated → ~/AppData/Roaming/Claude/claude_desktop_config.json
+    Restart Claude Desktop to activate.
+  Register with OpenClaw MCP? [Y/n]: y
+  ✓ OpenClaw tools config updated → ~/.openclaw/tools.json
+  Do an initial sync to MEMORY.md now? [Y/n]: y
+  ✓ Synced 8 memories → ~/.openclaw/workspace/MEMORY.md
+
+  MindClaw is ready!  Run `mindclaw --help` to see all commands.
+```
+
+### For OpenClaw agents — `setup_mindclaw` MCP tool
+
+OpenClaw agents can not run interactive prompts, so MindClaw exposes a
+`setup_mindclaw` MCP tool that accepts all settings as parameters.
+The agent should ask the user for values (or infer them from context)
+before calling the tool:
+
+```
+Agent asks: “What is your OpenClaw workspace path?”  → ~/my-workspace
+Agent asks: “Should I scope memories to this agent?  If so, what name?”  → planner
+Agent calls: setup_mindclaw(openclaw_workspace="~/my-workspace", agent_name="planner")
+```
+
+The tool saves the config, registers MindClaw in OpenClaw's tools registry,
+and does an initial sync — all in one call.
+
+### Settings priority
+
+Once configured, the priority chain for every setting is:
+
+```
+CLI flag  >  MINDCLAW_* env var  >  ~/.mindclaw/config.json  >  built-in default
+```
+
+Config is stored in `~/.mindclaw/config.json` and looks like:
+
+```json
+{
+  "db_path": null,
+  "agent_id": "mybot",
+  "openclaw_workspace": "/home/alex/.openclaw/workspace"
+}
 ```
 
 ## Quickstart
@@ -202,8 +272,9 @@ mindclaw mcp install --agent mybot --db ~/agents/mybot/memory.db
 
 | MCP Tool | What the agent can do |
 |---|---|
+| `setup_mindclaw` | **One-shot setup**: configure MindClaw + register + initial sync |
 | `remember` | Store facts, decisions, preferences, errors |
-| `recall` | BM25 + Ollama hybrid search with optional temporal decay (`temporal_decay=True`) and MMR diversity (`mmr=True`) |
+| `recall` | BM25 + Ollama hybrid search with temporal decay and MMR |
 | `context_block` | Get a token-limited prompt injection block |
 | `capture` | Auto-extract memories from any text |
 | `confirm` | Reinforce an existing memory |
@@ -394,11 +465,12 @@ captured = capture.process("Meeting notes: deploy v2 Friday", source="agent")
         ├── __init__.py     # Version & package init
         ├── capture.py      # Auto-extraction from text
         ├── cli.py          # CLI parser & command handlers
+        ├── config.py       # Persistent config (~/.mindclaw/config.json)
         ├── context.py      # Context window builder & conflict detection
         ├── graph.py        # Knowledge graph (edges, subgraph)
         ├── mcp_server.py   # MCP server (FastMCP) + install helpers
-        ├── search.py       # Search/recall engine
-        └── store.py        # SQLite memory store
+        ├── search.py       # BM25 + Ollama hybrid search engine
+        └── store.py        # SQLite memory store + Markdown bridge
 ```
 
 ## Roadmap
@@ -416,6 +488,8 @@ captured = capture.process("Meeting notes: deploy v2 Friday", source="agent")
 - [x] Temporal decay at query time (`--decay`)
 - [x] MMR diversity re-ranking (`--mmr`)
 - [x] OpenClaw Markdown bridge (`sync` / `md-import`)
+- [x] One-command setup wizard (`mindclaw setup` + `setup_mindclaw` MCP tool)
+- [x] Persistent config (~/.mindclaw/config.json) — configure once, use everywhere
 - [ ] Persistent Ollama embedding cache (avoid re-embedding on every search call)
 - [ ] Web dashboard for memory visualization
 - [ ] Multi-agent shared memory (read-across namespaces)

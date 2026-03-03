@@ -52,12 +52,25 @@ from .store import Memory, MemoryStore
 # ---------------------------------------------------------------------------
 
 def _get_store() -> MemoryStore:
-    db_path = os.environ.get("MINDCLAW_DB")
-    return MemoryStore(db_path=db_path if db_path else None)
+    """Create a store using env var > config file > built-in default."""
+    from .config import load_config
+    cfg = load_config()
+    db_path = cfg.effective_db()
+    return MemoryStore(db_path=db_path)
 
 
 def _default_agent() -> str:
-    return os.environ.get("MINDCLAW_AGENT", "")
+    """Resolve agent namespace using env var > config file > empty string."""
+    from .config import load_config
+    cfg = load_config()
+    return cfg.effective_agent()
+
+
+def _default_workspace() -> Optional[str]:
+    """Resolve OpenClaw workspace using env var > config file > None (auto-detect)."""
+    from .config import load_config
+    cfg = load_config()
+    return cfg.effective_workspace()
 
 
 def create_server() -> Any:
@@ -491,9 +504,103 @@ def create_server() -> Any:
         store = _get_store()
         agent_id = _default_agent()
         result = store.sync_openclaw(
-            workspace_path=workspace_path or None,
+            workspace_path=workspace_path or _default_workspace() or None,
             agent_id=agent_id,
         )
+        return result
+
+    # -----------------------------------------------------------------------
+    # Tool: setup_mindclaw  (one-shot configuration for agents)
+    # -----------------------------------------------------------------------
+
+    @mcp.tool()
+    def setup_mindclaw(
+        openclaw_workspace: str = "",
+        agent_name: str = "",
+        db_path: str = "",
+        register_openclaw_mcp: bool = True,
+        initial_sync: bool = True,
+    ) -> dict:
+        """
+        Configure MindClaw for this agent and register it with OpenClaw.
+
+        Call this tool ONCE after installing MindClaw to set persistent
+        defaults so every subsequent tool call works without extra parameters.
+
+        Ask the user (or infer from context) what values to use before calling:
+          - openclaw_workspace: path to the OpenClaw workspace directory
+          - agent_name: a short name to scope memories to this agent (e.g. 'planner')
+
+        Args:
+            openclaw_workspace: Path to the OpenClaw workspace directory.
+                                 Defaults to ~/.openclaw/workspace.
+            agent_name: Short identifier to namespace memories to this agent.
+                        Leave blank to use a shared namespace.
+            db_path: Path to the MindClaw SQLite database.
+                     Leave blank to use the default (~/.mindclaw/memory.db).
+            register_openclaw_mcp: Write MindClaw into OpenClaw's tools registry
+                                   so it is always available (default True).
+            initial_sync: Export all current memories to MEMORY.md immediately
+                          so they are searchable via OpenClaw's memory_search
+                          right away (default True).
+
+        Returns:
+            dict with 'configured', 'config_path', 'sync' result, 'mcp_registered'.
+        """
+        from .config import MindClawConfig, save_config, config_path
+        from pathlib import Path as _Path
+
+        # Build effective workspace
+        ws = (
+            str(_Path(openclaw_workspace).expanduser())
+            if openclaw_workspace
+            else str(_Path.home() / ".openclaw" / "workspace")
+        )
+
+        # Built-in default DB
+        builtin_db = str(_Path.home() / ".mindclaw" / "memory.db")
+        db_save = (
+            str(_Path(db_path).expanduser()) if db_path else None
+        )
+        if db_save == builtin_db:
+            db_save = None
+
+        cfg = MindClawConfig(
+            db_path=db_save,
+            agent_id=agent_name,
+            openclaw_workspace=ws,
+        )
+        saved = save_config(cfg)
+
+        result: dict = {
+            "configured": True,
+            "config_path": saved,
+            "settings": {
+                "db_path": db_save or builtin_db,
+                "agent_id": agent_name,
+                "openclaw_workspace": ws,
+            },
+        }
+
+        # Register OpenClaw MCP
+        mcp_path: Optional[str] = None
+        if register_openclaw_mcp:
+            try:
+                mcp_path = install_openclaw(db_path=db_save, agent_id=agent_name or None)
+            except Exception as exc:
+                mcp_path = f"error: {exc}"
+        result["mcp_registered"] = mcp_path
+
+        # Initial sync
+        sync_result: dict = {}
+        if initial_sync:
+            store = MemoryStore(db_path=db_save)
+            sync_result = store.sync_openclaw(
+                workspace_path=ws,
+                agent_id=agent_name,
+            )
+        result["sync"] = sync_result
+
         return result
 
     # -----------------------------------------------------------------------

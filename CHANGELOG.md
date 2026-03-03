@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.1] - 2026-03-03
+
+### Added
+- `config.py`: Persistent configuration file (`~/.mindclaw/config.json`) — stores db path, agent namespace, and OpenClaw workspace so flags never need to be repeated
+- `mindclaw setup`: Interactive terminal wizard for humans — prompts for workspace, agent name, DB path, MCP registration, and optional initial sync
+- `setup_mindclaw` MCP tool: Agent-facing equivalent — accepts all params directly, configures MindClaw + registers + syncs in one call; designed for OpenClaw agent onboarding flow
+- `_default_workspace()` helper in `mcp_server.py` — `sync_openclaw` now falls back to config-stored workspace automatically
+- All CLI commands now load config as baseline: `--db`, `--agent`, and workspace are auto-resolved from config before flags/env vars
+
+### Changed
+- `main()` in cli.py: loads config before creating `MemoryStore`; effective db/agent resolved with priority chain: CLI flag > env var > config > default
+- `cmd_sync`: workspace resolved from `--workspace` flag > config > env var > auto-detect
+- `_get_store()` / `_default_agent()` in mcp_server.py: now read from config as fallback
+- MCP tools table in README updated to include `setup_mindclaw` as the first entry
+
 All notable changes to MindClaw will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).

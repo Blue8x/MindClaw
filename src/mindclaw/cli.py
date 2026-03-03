@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 from .capture import AutoCapture
+from .config import MindClawConfig, load_config, save_config
 from .context import ContextBuilder, check_conflicts
 from .graph import KnowledgeGraph
 from .search import SearchEngine
@@ -420,7 +421,11 @@ def cmd_sync(args: argparse.Namespace, store: MemoryStore) -> None:
         print(f"\u2713 Exported {count} memories to {target}")
     else:
         # Auto-sync to OpenClaw workspace
-        ws = getattr(args, "workspace", None)
+        # Priority: --workspace flag > config file > env var > auto-detect
+        ws = (
+            getattr(args, "workspace", None)
+            or (args._config.effective_workspace() if hasattr(args, "_config") else None)
+        )
         result = store.sync_openclaw(workspace_path=ws or None, agent_id=agent_id)
         if result.get("ok"):
             print(f"\u2713 Synced {result['exported']} memories to {result['path']}")
@@ -444,6 +449,102 @@ def cmd_md_import(args: argparse.Namespace, store: MemoryStore) -> None:
     print(f"\u2713 Imported {count} new memories from {args.file}")
     if count == 0:
         print("  (All bullet points were already in the store, or the file had none.)")
+
+
+def cmd_setup(args: argparse.Namespace, store: MemoryStore) -> None:
+    """
+    Interactive setup wizard.
+    Configures MindClaw once so every subsequent command works without flags.
+    Also available as the `setup_mindclaw` MCP tool for OpenClaw agents.
+    """
+    cfg = load_config()
+
+    print()
+    print("\u2550" * 52)
+    print("  MindClaw Setup Wizard")
+    print("\u2550" * 52)
+    print("  Press Enter to accept the default shown in [brackets].")
+    print()
+
+    def _ask(prompt: str, default: str) -> str:
+        try:
+            val = input(f"  {prompt} [{default}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return default
+        return val if val else default
+
+    def _yes(prompt: str) -> bool:
+        try:
+            val = input(f"  {prompt} [Y/n]: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return True
+        return val not in ("n", "no")
+
+    # ------------------------------------------------------------------ 1. Workspace
+    default_ws = cfg.openclaw_workspace or str(Path.home() / ".openclaw" / "workspace")
+    workspace = Path(
+        _ask("OpenClaw workspace path", default_ws)
+    ).expanduser()
+    workspace_str = str(workspace)
+
+    # ------------------------------------------------------------------ 2. Agent
+    default_agent = cfg.agent_id or ""
+    raw_agent = _ask(
+        "Default agent name  (leave blank = shared namespace)",
+        default_agent if default_agent else "none",
+    )
+    agent = "" if raw_agent in ("none", "") else raw_agent
+
+    # ------------------------------------------------------------------ 3. DB path
+    builtin_default_db = str(Path.home() / ".mindclaw" / "memory.db")
+    default_db = cfg.db_path or builtin_default_db
+    db_str = str(Path(_ask("Database path", default_db)).expanduser())
+    db_save: Optional[str] = None if db_str == builtin_default_db else db_str
+
+    # ------------------------------------------------------------------ Save
+    new_cfg = MindClawConfig(
+        db_path=db_save,
+        agent_id=agent,
+        openclaw_workspace=workspace_str,
+    )
+    saved_path = save_config(new_cfg)
+    print()
+    print(f"  \u2713 Config saved \u2192 {saved_path}")
+    print()
+
+    # ------------------------------------------------------------------ 4. Claude Desktop MCP
+    if _yes("Register with Claude Desktop MCP?"):
+        try:
+            from . import mcp_server as _mcp
+            path = _mcp.install_claude_desktop(db_path=db_save, agent_id=agent or None)
+            print(f"  \u2713 Claude Desktop config updated \u2192 {path}")
+            print("    Restart Claude Desktop to activate.")
+        except ImportError:
+            print("  ! MCP SDK not installed. Run: pip install mindclaw[mcp]")
+
+    # ------------------------------------------------------------------ 5. OpenClaw MCP
+    if _yes("Register with OpenClaw MCP?"):
+        try:
+            from . import mcp_server as _mcp
+            path = _mcp.install_openclaw(db_path=db_save, agent_id=agent or None)
+            print(f"  \u2713 OpenClaw tools config updated \u2192 {path}")
+        except ImportError:
+            print("  ! MCP SDK not installed. Run: pip install mindclaw[mcp]")
+
+    # ------------------------------------------------------------------ 6. Initial sync
+    if _yes("Do an initial sync to MEMORY.md now?"):
+        s = MemoryStore(db_path=db_save)
+        result = s.sync_openclaw(workspace_path=workspace_str, agent_id=agent)
+        if result.get("ok"):
+            print(f"  \u2713 Synced {result['exported']} memories \u2192 {result['path']}")
+            print("    Memories are now searchable via OpenClaw's memory_search tool.")
+        else:
+            print(f"  ! Sync skipped: {result.get('error', 'unknown error')}")
+
+    print()
+    print("  MindClaw is ready!  Run `mindclaw --help` to see all commands.")
+    print()
 
 
 def cmd_mcp(args: argparse.Namespace, store: MemoryStore) -> None:
@@ -650,6 +751,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("file", help="Path to MEMORY.md or a YYYY-MM-DD.md daily log")
     p.add_argument("--source", help="Source label for imported memories")
 
+    # setup
+    sub.add_parser(
+        "setup",
+        help="Interactive setup wizard — configure MindClaw once, use everywhere",
+    )
+
     # mcp
     p = sub.add_parser("mcp", help="MCP server management")
     mcp_sub = p.add_subparsers(dest="mcp_command")
@@ -669,6 +776,7 @@ def build_parser() -> argparse.ArgumentParser:
 # ---------------------------------------------------------------------------
 
 _COMMANDS = {
+    "setup": cmd_setup,
     "remember": cmd_remember, "r": cmd_remember, "add": cmd_remember,
     "recall": cmd_recall, "search": cmd_recall, "q": cmd_recall,
     "get": cmd_get,
@@ -702,7 +810,18 @@ def main(argv: Optional[list[str]] = None) -> None:
         parser.print_help()
         sys.exit(0)
 
-    store = MemoryStore(db_path=args.db)
+    # Load persistent config.  Priority: CLI flag > env var > config > default.
+    cfg = load_config()
+    args._config = cfg
+
+    # Effective db path
+    effective_db: Optional[str] = getattr(args, "db", None) or cfg.effective_db()
+
+    # Effective agent: CLI --agent > env var > config
+    if not getattr(args, "agent", None):
+        args.agent = cfg.effective_agent()
+
+    store = MemoryStore(db_path=effective_db)
     handler = _COMMANDS.get(args.command)
 
     if handler is None:

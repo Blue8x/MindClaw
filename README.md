@@ -9,7 +9,8 @@
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-server-orange.svg)](#mcp-server-native-agent-integration)
 [![ClawHub](https://img.shields.io/badge/clawhub.ai-ready-blueviolet.svg)](https://clawhub.ai)
-CA: Coming Soon.
+
+<p>CA: Coming Soon.</p>
 
 > **Remember everything, forget nothing.**
 

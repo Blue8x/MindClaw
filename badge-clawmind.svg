@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="118" height="20">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="137" height="20">
   <linearGradient id="s" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
     <stop offset="1" stop-opacity=".1"/>
   </linearGradient>
   <clipPath id="r">
-    <rect width="118" height="20" rx="3" fill="#fff"/>
+    <rect width="137" height="20" rx="3" fill="#fff"/>
   </clipPath>
   <g clip-path="url(#r)">
-    <rect width="92" height="20" fill="#555555"/>
-    <rect x="92" width="26" height="20" fill="#3d2b2b"/>
-    <rect width="118" height="20" fill="url(#s)"/>
+    <rect width="111" height="20" fill="#555555"/>
+    <rect x="111" width="26" height="20" fill="#3d2b2b"/>
+    <rect width="137" height="20" fill="url(#s)"/>
   </g>
   <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
-    <text x="46" y="15" fill="#010101" fill-opacity=".3">clawmind.xyz</text>
-    <text x="46" y="14">clawmind.xyz</text>
+    <text x="55" y="15" fill="#010101" fill-opacity=".3">mindclaw.online</text>
+    <text x="55" y="14">mindclaw.online</text>
   </g>
-  <image x="96" y="1" width="18" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAOCAYAAAAi2ky3AAABn0lEQVR4nLVTv08UQRh93y6LhXCQ4CbGxKgVjcm1dgT+AxIGNVDZYbSyJgulxPgfWFnBFBATQkNQDKUXjYQLNieywR8XYG+543bndnY+GggERriGV36Z9/LemzygTTBA7b61EtNnY/318fGHx+f/ijlWESFcAvjH2JNhpbLN1LTWvz8eEQB4Tgi3bSFIaeaLxd7kMN74tvN7Pqw39lPD3R8HBrr8atXqyiZEBPC21n1vFpZ2WlHtXWNv7+3m57XZUKnbn1ZXjS3ihQML4ZKU+d/BwadNr2NiN1E9RueUEkUmjheHNtZnGIFDmDaXCwE0FQT0anm5LB/c799tJrilFMqFAkZKX+sL3Tfvvi6VYj52fsLrOC9CAM+Vy84/5s5HP7ezmkop05ruhKGpknHuRdGNKzsigFkId1TK/ECbDz157kEpzlvKFLT2mppXnlcqVQacs27sZUtpAsAJ42iykiRLIHgG7P1pZV9qDiYYoCmLI+tXnkQMfL+r6PsvG1nmHmTZ+xdbW78CwJkGjI1nhW0Sl83kyv3waXw+38u14AjIhcfRBrXPRgAAAABJRU5ErkJggg=="/>
+  <image x="115" y="1" width="18" height="18" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAOCAYAAAAi2ky3AAABn0lEQVR4nLVTv08UQRh93y6LhXCQ4CbGxKgVjcm1dgT+AxIGNVDZYbSyJgulxPgfWFnBFBATQkNQDKUXjYQLNieywR8XYG+543bndnY+GggERriGV36Z9/LemzygTTBA7b61EtNnY/318fGHx+f/ijlWESFcAvjH2JNhpbLN1LTWvz8eEQB4Tgi3bSFIaeaLxd7kMN74tvN7Pqw39lPD3R8HBrr8atXqyiZEBPC21n1vFpZ2WlHtXWNv7+3m57XZUKnbn1ZXjS3ihQML4ZKU+d/BwadNr2NiN1E9RueUEkUmjheHNtZnGIFDmDaXCwE0FQT0anm5LB/c799tJrilFMqFAkZKX+sL3Tfvvi6VYj52fsLrOC9CAM+Vy84/5s5HP7ezmkop05ruhKGpknHuRdGNKzsigFkId1TK/ECbDz157kEpzlvKFLT2mppXnlcqVQacs27sZUtpAsAJ42iykiRLIHgG7P1pZV9qDiYYoCmLI+tXnkQMfL+r6PsvG1nmHmTZ+xdbW78CwJkGjI1nhW0Sl83kyv3waXw+38u14AjIhcfRBrXPRgAAAABJRU5ErkJggg=="/>
 </svg>

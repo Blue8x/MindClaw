@@ -10,8 +10,8 @@
 [![MCP](https://img.shields.io/badge/MCP-server-orange.svg)](#mcp-server-native-agent-integration)
 [![ClawHub](https://img.shields.io/badge/clawhub.ai-ready-blueviolet.svg)](https://clawhub.ai)
 
-<p>CA: Coming Soon.</p>
-
+<p>CA: </p>
+<p>Website: clawmind.xyz </p>
 > **Remember everything, forget nothing.**
 
 Persistent memory and knowledge graph for AI agents.

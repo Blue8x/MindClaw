@@ -9,9 +9,10 @@
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![MCP](https://img.shields.io/badge/MCP-server-orange.svg)](#mcp-server-native-agent-integration)
 [![ClawHub](https://img.shields.io/badge/clawhub.ai-ready-blueviolet.svg)](https://clawhub.ai)
+[![ClawMind](https://github.com/Blue8x/MindClaw/blob/main/mindclaw.png)](https://clawmind.xyz)
 
 <p>CA: </p>
-<p>Website: clawmind.xyz </p>
+
 > **Remember everything, forget nothing.**
 
 Persistent memory and knowledge graph for AI agents.

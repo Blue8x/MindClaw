@@ -393,15 +393,17 @@ mindclaw setup
 
 ## Publishing to ClawHub
 
-MindClaw ships with a [`clawhub.yaml`](clawhub.yaml) manifest that declares capabilities, config, and metadata for [clawhub.ai](https://clawhub.ai).
+MindClaw ships with a [`clawhub.yaml`](clawhub.yaml) manifest and a [`SKILL.md`](SKILL.md) for [clawhub.ai](https://clawhub.ai).
 
-To publish:
+The skill is live at: **https://clawhub.ai/Blue8x/mindclaw**
+
+To publish a new version:
 
 1. Bump version in `pyproject.toml`, `clawhub.yaml`, and `src/mindclaw/__init__.py`
 2. Update [`CHANGELOG.md`](CHANGELOG.md)
-3. Tag: `git tag v0.x.x`
-4. Push: `git push origin main --tags`
-5. ClawHub picks up the release automatically from the tag
+3. Commit and push to GitHub
+4. Go to [clawhub.ai/upload](https://clawhub.ai/upload), fill in slug/version/tags and drag the project root folder
+5. ClawHub requires `SKILL.md` at the root — it is the skill's display page
 
 The manifest exposes all CLI commands and MCP tools as agent-consumable capabilities, so any OpenClaw-compatible runtime can discover and invoke them.
 

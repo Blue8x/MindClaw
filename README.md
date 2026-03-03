@@ -1,7 +1,7 @@
 # MindClaw
 
 <p align="center">
-  <img src="MindClaw.jpg" alt="MindClaw logo" width="340"/>
+  <img src="mindclaw.png" alt="MindClaw logo" width="340"/>
 </p>
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)

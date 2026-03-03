@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────
+# ClawHub Tool Manifest — https://clawhub.ai
+# ─────────────────────────────────────────────────────────────
+
+name: mindclaw
+display_name: MindClaw
+version: 0.1.0
+description: >
+  Persistent memory and knowledge graph for AI agents.
+  Remember everything, forget nothing.
+
+author: Blue8x
+license: MIT
+homepage: https://github.com/Blue8x/Clawtion
+repository: https://github.com/Blue8x/Clawtion
+
+# ── Compatibility ────────────────────────────────────────────
+
+runtime: python
+python_requires: ">=3.10"
+install_command: pip install -e .
+entry_point: mindclaw.cli:main
+
+# ── Categories & tags ────────────────────────────────────────
+
+category: memory
+tags:
+  - memory
+  - knowledge-graph
+  - agent-tool
+  - sqlite
+  - recall
+  - capture
+
+# ── Capabilities exposed to agent runtimes ───────────────────
+
+capabilities:
+  - name: remember
+    description: Store a new memory
+    usage: mindclaw remember "<content>" -c <category> -t <tags> -i <importance>
+
+  - name: recall
+    description: Search memories by query
+    usage: mindclaw recall "<query>" -n <limit>
+
+  - name: get
+    description: Retrieve a single memory by ID
+    usage: mindclaw get <id>
+
+  - name: list
+    description: List memories with filters
+    usage: mindclaw list -c <category> -t <tag> -n <limit>
+
+  - name: forget
+    description: Archive or hard-delete a memory
+    usage: mindclaw forget <id> [--hard]
+
+  - name: link
+    description: Create a relation between two memories
+    usage: mindclaw link <source_id> <target_id> -r <relation> [-b]
+
+  - name: graph
+    description: Show knowledge subgraph around a memory
+    usage: mindclaw graph <id> -d <depth> [--json]
+
+  - name: capture
+    description: Auto-extract memories from text
+    usage: mindclaw capture "<text>" [--dry-run]
+
+  - name: stats
+    description: Show memory store statistics
+    usage: mindclaw stats
+
+  - name: decay
+    description: Apply importance decay and archive stale memories
+    usage: mindclaw decay --threshold <value>
+
+  - name: export
+    description: Export all memories to JSON
+    usage: mindclaw export -o <file>
+
+  - name: import
+    description: Import memories from JSON backup
+    usage: mindclaw import <file> [--replace]
+
+# ── Configuration ────────────────────────────────────────────
+
+config:
+  db_path:
+    description: Path to SQLite database
+    default: ~/.mindclaw/memory.db
+    env: MINDCLAW_DB
+
+# ── Health check ─────────────────────────────────────────────
+
+healthcheck: mindclaw stats

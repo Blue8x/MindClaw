@@ -38,20 +38,30 @@ MindClaw is a **structured long-term knowledge layer** for OpenClaw agents. Wher
 
 - Python 3.10+
 
-### One command — for agents (recommended)
+### One command — for agents (Claude Desktop)
 
 ```bash
 pip install mindclaw[mcp] && mindclaw mcp install
 ```
 
 This installs MindClaw with the MCP server and registers it with **Claude Desktop** automatically.
-Restart Claude Desktop — MindClaw tools are immediately available to the agent.
+Restart Claude Desktop — MindClaw tools are immediately available.
 
 To register with **OpenClaw** instead:
 
 ```bash
 pip install mindclaw[mcp] && mindclaw mcp install --target openclaw
 ```
+
+### One command — for humans (full setup)
+
+```bash
+pip install mindclaw[mcp] && mindclaw setup
+```
+
+The `setup` wizard asks for your OpenClaw workspace path, agent name, and DB path,
+then optionally registers with Claude Desktop / OpenClaw and does an initial sync.
+You will never need flags again after this step.
 
 ### Install for CLI use only
 
@@ -225,6 +235,7 @@ found by OpenClaw's `memory_search` — no agent code changes needed.
 
 | Command | Aliases | Purpose | Example |
 |---|---|---|---|
+| `setup` | — | One-time setup wizard (workspace, agent, DB, MCP registration) | `mindclaw setup` |
 | `remember` | `r`, `add` | Save a new memory | `mindclaw remember "text" -c note -t tag1,tag2 -i 0.6 --pin` |
 | `recall` | `search`, `q` | BM25 + Ollama search; `--decay` for recency boost, `--mmr` for diversity | `mindclaw recall "query" -n 10 --decay --mmr` |
 | `sync` | — | Export memories to OpenClaw's MEMORY.md (in-place update) | `mindclaw sync [--to PATH] [--workspace PATH]` |
@@ -326,8 +337,9 @@ Core modules:
 | `context.py` | Token-aware context block builder, conflict detection, cluster summarization |
 | `graph.py` | Knowledge graph — edge CRUD, shortest-path, subgraph traversal |
 | `capture.py` | Rule-based extraction of facts, decisions, errors, prefs from free text |
+| `config.py` | Persistent config file — read/write `~/.mindclaw/config.json` |
 | `cli.py` | Argument parser and all command handlers |
-| `mcp_server.py` | FastMCP server factory, 14 MCP tools, Claude Desktop + OpenClaw install helpers |
+| `mcp_server.py` | FastMCP server factory, **15 MCP tools**, Claude Desktop + OpenClaw install helpers |
 
 High-level flow:
 
@@ -347,19 +359,32 @@ High-level flow:
 
 ## Configuration
 
-| Setting | Default | Override |
-|---|---|---|
-| DB path | `~/.mindclaw/memory.db` | `--db <path>` or `MINDCLAW_DB` |
-| Agent namespace | `""` (default) | `--agent <name>` or `MINDCLAW_AGENT` |
-| OpenClaw workspace | `~/.openclaw/workspace` | `MINDCLAW_OPENCLAW_WORKSPACE` |
+Settings are resolved with the following priority chain:
+
+```
+CLI flag  >  MINDCLAW_* env var  >  ~/.mindclaw/config.json  >  built-in default
+```
+
+Run `mindclaw setup` once to write `~/.mindclaw/config.json` — afterwards all commands pick up your
+workspace path, agent name, and DB path automatically.
+
+| Setting | Default | Flag | Env var |
+|---|---|---|---|
+| DB path | `~/.mindclaw/memory.db` | `--db <path>` | `MINDCLAW_DB` |
+| Agent namespace | `""` (shared) | `--agent <name>` | `MINDCLAW_AGENT` |
+| OpenClaw workspace | `~/.openclaw/workspace` | `--workspace <path>` | `MINDCLAW_OPENCLAW_WORKSPACE` |
+| Config file | `~/.mindclaw/config.json` | — | — |
 
 ```bash
-# flag
+# Use a flag (overrides config + env)
 mindclaw --db ./data/memory.db stats
 
-# env var
+# Use env var (overrides config only)
 export MINDCLAW_DB=./data/memory.db
 mindclaw stats
+
+# Or just run setup once and forget about flags
+mindclaw setup
 ```
 
 ## Publishing to ClawHub
@@ -374,7 +399,7 @@ To publish:
 4. Push: `git push origin main --tags`
 5. ClawHub picks up the release automatically from the tag
 
-The manifest exposes all 12 CLI commands as agent-consumable capabilities, so any OpenClaw-compatible runtime can discover and invoke them.
+The manifest exposes all CLI commands and MCP tools as agent-consumable capabilities, so any OpenClaw-compatible runtime can discover and invoke them.
 
 ## Programmatic usage
 

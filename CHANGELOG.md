@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.3.1] - 2026-03-03
+All notable changes to MindClaw will be documented in this file.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.1] — 2026-03-03
 
 ### Added
 - `config.py`: Persistent configuration file (`~/.mindclaw/config.json`) — stores db path, agent namespace, and OpenClaw workspace so flags never need to be repeated
@@ -13,12 +17,7 @@
 - `main()` in cli.py: loads config before creating `MemoryStore`; effective db/agent resolved with priority chain: CLI flag > env var > config > default
 - `cmd_sync`: workspace resolved from `--workspace` flag > config > env var > auto-detect
 - `_get_store()` / `_default_agent()` in mcp_server.py: now read from config as fallback
-- MCP tools table in README updated to include `setup_mindclaw` as the first entry
-
-All notable changes to MindClaw will be documented in this file.
-
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+- MCP tools table in README updated to include `setup_mindclaw` as the first entry (15 tools total)
 
 ## [0.3.0] — 2026-03-03
 
@@ -48,6 +47,8 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `clawhub.yaml`: version 0.3.0; added `openclaw:` integration block; new `sync` and `md-import`
   capabilities; `MINDCLAW_OPENCLAW_WORKSPACE` config entry
 
+
+## [0.2.0] — 2026-03-03
 
 ### Added
 
